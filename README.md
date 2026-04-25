@@ -74,4 +74,3 @@ python eval.py
 
     eval.py - NLTK integration for evaluating model performance against human references.
 
-    .gitignore - Prevents large .pt weight files from being pushed to the repository.
