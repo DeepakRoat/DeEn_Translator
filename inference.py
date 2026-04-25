@@ -2,7 +2,7 @@ import torch
 import pandas as pd
 import spacy
 from collections import Counter
-from model import FullDecoder, Seq2SeqTransformer, TransformerEncoder
+from model import TransformerDecoder, Seq2SeqTransformer, TransformerEncoder
 
 # --- 1. SETUP VOCABULARY (Must match training exactly) ---
 try:
@@ -47,7 +47,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # --- 2. LOAD MODEL ---
 print("Loading Model...")
 encoder = TransformerEncoder(len(vocab_src), 256, 8, 3)
-decoder = FullDecoder(len(vocab_tgt), 256, 8, 3)
+decoder = TransformerDecoder(len(vocab_tgt), 256, 8, 3)
 model = Seq2SeqTransformer(encoder, decoder).to(device)
 
 # Load the best weights you saved!

@@ -10,7 +10,7 @@ from tqdm.auto import tqdm
 import os
 
 # Import your custom architectures
-from model import FullDecoder, Seq2SeqTransformer, TransformerEncoder
+from model import Seq2SeqTransformer, TransformerEncoder, TransformerDecoder
 
 # --- 1. SETUP DATA ---
 try:
@@ -78,7 +78,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
 encoder = TransformerEncoder(len(vocab_src), 256, 8, 3)
-decoder = FullDecoder(len(vocab_tgt), 256, 8, 3)
+decoder = TransformerDecoder(len(vocab_tgt), 256, 8, 3)
 model = Seq2SeqTransformer(encoder, decoder).to(device)
 
 loss_fn = nn.CrossEntropyLoss(ignore_index=PAD_IDX)

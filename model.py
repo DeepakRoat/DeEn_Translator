@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 def apply_rope(x, positions, dim):
     """
     Apply Rotary Position Embedding (RoPE) to query/key tensors
@@ -45,7 +44,7 @@ class SwiGLUFFN(nn.Module):
 
 class TransformerBlock(nn.Module):
     def __init__(self, num_heads=4):
-        super(TransformerBlock, self).__init__()
+        super().__init__()
         self.dim_ = 256
         self.num_heads = num_heads
         self.head_dim = self.dim_ // num_heads
@@ -84,7 +83,7 @@ class TransformerBlock(nn.Module):
         out = out.transpose(1, 2).contiguous().reshape(B, N, D)
         
         Y = self.lin(out)
-        out = self.ln1(X + Y) # FIXED: Added X (original input) instead of out
+        out = self.ln1(X + Y) 
         Y = self.ffn(out)
 
         return self.ln2(out + Y)
@@ -92,7 +91,7 @@ class TransformerBlock(nn.Module):
 
 class TransformerEncoder(nn.Module):
     def __init__(self, vocab_dim, model_dim=256, num_heads=8, num_layers=6):
-        super(TransformerEncoder, self).__init__()
+        super().__init__()
         self.dim_ = model_dim
         self.num_layers_ = num_layers
         self.embedding = nn.Embedding(vocab_dim, model_dim)
@@ -107,11 +106,10 @@ class TransformerEncoder(nn.Module):
         return X
     
 
-# --- NEW DECODER COMPONENTS ---
 
 class DecoderBlock(nn.Module):
     def __init__(self, dim_=256, num_heads=8):
-        super(DecoderBlock, self).__init__()
+        super().__init__()
         self.dim_ = dim_
         self.num_heads = num_heads
         self.head_dim = self.dim_ // num_heads
@@ -183,7 +181,11 @@ class DecoderBlock(nn.Module):
         return Y
 
 class TransformerDecoder(nn.Module):
-    # ... (__init__ stays the same) ...
+    def __init__(self, vocab_dim, model_dim=256, num_heads=8, num_layers=6):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_dim, model_dim)
+        self.decoder_blocks = nn.ModuleList([DecoderBlock(model_dim, num_heads) for _ in range(num_layers)])
+        self.lm_head = nn.Linear(model_dim, vocab_dim)
 
     def forward(self, Y, enc_out):
         B, N = Y.shape
@@ -198,18 +200,13 @@ class TransformerDecoder(nn.Module):
 
         return logits
     
+
 class Seq2SeqTransformer(nn.Module):
     def __init__(self, encoder, decoder):
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
+        
     def forward(self, src, tgt):
         enc_out = self.encoder(src)
         return self.decoder(tgt, enc_out)
-
-class FullDecoder(TransformerDecoder):
-    def __init__(self, vocab_dim, model_dim=256, num_heads=8, num_layers=6):
-        super(TransformerDecoder, self).__init__()
-        self.embedding = nn.Embedding(vocab_dim, model_dim)
-        self.decoder_blocks = nn.ModuleList([DecoderBlock(model_dim, num_heads) for _ in range(num_layers)])
-        self.lm_head = nn.Linear(model_dim, vocab_dim)
